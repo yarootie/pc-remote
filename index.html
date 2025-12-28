@@ -1,813 +1,234 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>PC Remote</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'SF Pro Display', sans-serif;
-        }
-
-        :root {
-            --bg: #000000;
-            --bg-card: #111111;
-            --bg-btn: #1c1c1e;
-            --bg-btn-hover: #2c2c2e;
-            --accent: #ffffff;
-            --accent-dim: #8e8e93;
-            --border: #38383a;
-            --success: #30d158;
-            --danger: #ff453a;
-            --warning: #ffd60a;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--accent);
-            min-height: 100vh;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 100%;
-            padding: 0 16px 100px;
-        }
-
-        /* Header */
-        .header {
-            padding: 20px 0;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .header .subtitle {
-            color: var(--accent-dim);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .card-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-
-        /* Button Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .grid-4 {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .btn {
-            background: var(--bg-btn);
-            border: none;
-            border-radius: 12px;
-            padding: 16px 12px;
-            color: var(--accent);
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.15s ease;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .btn:active {
-            transform: scale(0.96);
-            background: var(--bg-btn-hover);
-        }
-
-        .btn-icon {
-            font-size: 24px;
-        }
-
-        .btn-text {
-            font-size: 12px;
-            color: var(--accent-dim);
-        }
-
-        .btn-danger {
-            background: rgba(255, 69, 58, 0.15);
-            color: var(--danger);
-        }
-
-        .btn-success {
-            background: rgba(48, 209, 88, 0.15);
-            color: var(--success);
-        }
-
-        .btn-full {
-            grid-column: span 2;
-        }
-
-        /* Volume */
-        .volume-container {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 8px 0;
-        }
-
-        .volume-icon {
-            font-size: 20px;
-            width: 30px;
-            text-align: center;
-        }
-
-        .volume-slider {
-            flex: 1;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 6px;
-            background: var(--bg-btn);
-            border-radius: 3px;
-            outline: none;
-        }
-
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 22px;
-            height: 22px;
-            background: var(--accent);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-
-        .volume-value {
-            font-size: 15px;
-            font-weight: 600;
-            min-width: 45px;
-            text-align: right;
-        }
-
-        /* Media Controls */
-        .media-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            padding: 16px 0;
-        }
-
-        .media-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: none;
-            background: var(--bg-btn);
-            color: var(--accent);
-            font-size: 22px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s ease;
-        }
-
-        .media-btn:active {
-            transform: scale(0.92);
-        }
-
-        .media-btn.play {
-            width: 72px;
-            height: 72px;
-            background: var(--accent);
-            color: var(--bg);
-            font-size: 28px;
-        }
-
-        /* Input */
-        .input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .input {
-            flex: 1;
-            background: var(--bg-btn);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            color: var(--accent);
-            font-size: 16px;
-            outline: none;
-        }
-
-        .input:focus {
-            border-color: var(--accent-dim);
-        }
-
-        .input::placeholder {
-            color: var(--accent-dim);
-        }
-
-        .input-btn {
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 10px;
-            padding: 14px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .input-btn:active {
-            opacity: 0.8;
-        }
-
-        /* Quick Bar */
-        .quick-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 12px 20px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid var(--border);
-        }
-
-        .quick-btn {
-            background: var(--bg-btn);
-            border: none;
-            border-radius: 12px;
-            width: 52px;
-            height: 52px;
-            color: var(--accent);
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .quick-btn:active {
-            background: var(--bg-btn-hover);
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 0 16px;
-            scrollbar-width: none;
-        }
-
-        .tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab {
-            flex-shrink: 0;
-            padding: 10px 18px;
-            background: var(--bg-btn);
-            border: none;
-            border-radius: 20px;
-            color: var(--accent-dim);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .tab.active {
-            background: var(--accent);
-            color: var(--bg);
-        }
-
-        /* Pages */
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Keys Grid */
-        .keys-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-        }
-
-        .key {
-            background: var(--bg-btn);
-            border: none;
-            border-radius: 8px;
-            padding: 14px 8px;
-            color: var(--accent);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .key:active {
-            background: var(--accent);
-            color: var(--bg);
-        }
-
-        /* Confirm Dialog */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .overlay.show {
-            display: flex;
-        }
-
-        .dialog {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 320px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .dialog-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .dialog-text {
-            color: var(--accent-dim);
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .dialog-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .dialog-btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .dialog-btn.cancel {
-            background: var(--bg-btn);
-            color: var(--accent);
-        }
-
-        .dialog-btn.confirm {
-            background: var(--danger);
-            color: white;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+        body{background:#000;color:#fff;min-height:100vh;padding:16px;padding-bottom:90px}
+        .h{text-align:center;padding:16px 0;border-bottom:1px solid #222;margin-bottom:16px}
+        .h h1{font-size:22px;font-weight:600}
+        .h p{color:#888;font-size:13px;margin-top:4px}
+        .d{display:inline-block;width:8px;height:8px;background:#0f0;border-radius:50%;margin-right:8px;animation:p 2s infinite}
+        @keyframes p{50%{opacity:.4}}
+        .c{background:#111;border-radius:14px;padding:14px;margin-bottom:12px}
+        .t{font-size:12px;color:#888;text-transform:uppercase;margin-bottom:10px;letter-spacing:.5px}
+        .g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .g4{grid-template-columns:repeat(4,1fr)}
+        .b{background:#1c1c1e;border:0;border-radius:10px;padding:14px;color:#fff;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+        .b:active{background:#333;transform:scale(.97)}
+        .i{font-size:22px}
+        .s{font-size:11px;color:#888}
+        .br{background:rgba(255,59,48,.15);color:#ff3b30}
+        .bg{background:rgba(48,209,88,.15);color:#30d158}
+        .m{display:flex;justify-content:center;gap:16px;padding:14px 0}
+        .mb{width:50px;height:50px;border-radius:50%;border:0;background:#1c1c1e;color:#fff;font-size:20px;cursor:pointer}
+        .mb:active{background:#333}
+        .mp{width:64px;height:64px;background:#fff;color:#000;font-size:26px}
+        .vc{display:flex;align-items:center;gap:12px;padding:8px 0}
+        .vs{flex:1;-webkit-appearance:none;height:6px;background:#333;border-radius:3px}
+        .vs::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:#fff;border-radius:50%}
+        .vv{min-width:40px;text-align:right;font-weight:600}
+        .ig{display:flex;gap:8px;margin-top:10px}
+        .ip{flex:1;background:#1c1c1e;border:1px solid #333;border-radius:8px;padding:12px;color:#fff;font-size:15px}
+        .ip:focus{border-color:#666;outline:0}
+        .ib{background:#fff;color:#000;border:0;border-radius:8px;padding:12px 18px;font-weight:600;cursor:pointer}
+        .kg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+        .k{background:#1c1c1e;border:0;border-radius:8px;padding:12px;color:#fff;font-size:12px;cursor:pointer}
+        .k:active{background:#fff;color:#000}
+        .tb{display:flex;overflow-x:auto;gap:8px;padding:4px 0 14px;scrollbar-width:none}
+        .tb::-webkit-scrollbar{display:none}
+        .ta{flex-shrink:0;padding:8px 14px;background:#1c1c1e;border:0;border-radius:16px;color:#888;font-size:13px;cursor:pointer}
+        .ta.a{background:#fff;color:#000}
+        .pg{display:none}.pg.a{display:block}
+        .qb{position:fixed;bottom:0;left:0;right:0;background:#111;padding:12px;display:flex;justify-content:space-around;border-top:1px solid #222}
+        .qb button{background:#1c1c1e;border:0;border-radius:10px;width:48px;height:48px;color:#fff;font-size:18px;cursor:pointer}
+        .qb button:active{background:#333}
+        .to{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(80px);background:#222;padding:10px 20px;border-radius:20px;font-size:13px;transition:transform .2s;z-index:99}
+        .to.sh{transform:translateX(-50%) translateY(0)}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><span class="status-dot"></span>PC Remote</h1>
-            <div class="subtitle">Управление компьютером</div>
-        </div>
+<div class="h"><h1><span class="d"></span>PC Remote</h1><p>Управление компьютером</p></div>
 
-        <div class="tabs">
-            <button class="tab active" data-page="main">Главная</button>
-            <button class="tab" data-page="power">Питание</button>
-            <button class="tab" data-page="sound">Звук</button>
-            <button class="tab" data-page="input">Ввод</button>
-            <button class="tab" data-page="terminal">Терминал</button>
-        </div>
+<div class="tb">
+    <button class="ta a" data-p="main">Главная</button>
+    <button class="ta" data-p="pwr">Питание</button>
+    <button class="ta" data-p="snd">Звук</button>
+    <button class="ta" data-p="inp">Ввод</button>
+    <button class="ta" data-p="cmd">Терминал</button>
+</div>
 
-        <!-- Main Page -->
-        <div class="page active" id="page-main">
-            <div class="card">
-                <div class="card-title">Быстрые действия</div>
-                <div class="grid">
-                    <button class="btn" onclick="send('/ss')">
-                        <span class="btn-icon">📸</span>
-                        <span class="btn-text">Скриншот</span>
-                    </button>
-                    <button class="btn" onclick="send('/lock')">
-                        <span class="btn-icon">🔒</span>
-                        <span class="btn-text">Блокировка</span>
-                    </button>
-                    <button class="btn" onclick="send('/sleep')">
-                        <span class="btn-icon">😴</span>
-                        <span class="btn-text">Сон</span>
-                    </button>
-                    <button class="btn" onclick="send('/monoff')">
-                        <span class="btn-icon">🖥</span>
-                        <span class="btn-text">Выкл. монитор</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Медиа</div>
-                <div class="media-controls">
-                    <button class="media-btn" onclick="send('/prev')">⏮</button>
-                    <button class="media-btn play" onclick="send('/play')">⏯</button>
-                    <button class="media-btn" onclick="send('/next')">⏭</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Громкость</div>
-                <div class="volume-container">
-                    <span class="volume-icon">🔈</span>
-                    <input type="range" class="volume-slider" id="vol" min="0" max="100" value="50">
-                    <span class="volume-value" id="vol-val">50%</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Power Page -->
-        <div class="page" id="page-power">
-            <div class="card">
-                <div class="card-title">Управление питанием</div>
-                <div class="grid">
-                    <button class="btn" onclick="send('/lock')">
-                        <span class="btn-icon">🔒</span>
-                        <span class="btn-text">Блокировка</span>
-                    </button>
-                    <button class="btn" onclick="send('/sleep')">
-                        <span class="btn-icon">😴</span>
-                        <span class="btn-text">Сон</span>
-                    </button>
-                    <button class="btn" onclick="send('/monoff')">
-                        <span class="btn-icon">🖥</span>
-                        <span class="btn-text">Выкл. монитор</span>
-                    </button>
-                    <button class="btn btn-success" onclick="send('/cancel')">
-                        <span class="btn-icon">✓</span>
-                        <span class="btn-text">Отменить</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Опасная зона</div>
-                <div class="grid">
-                    <button class="btn btn-danger" onclick="confirmAction('shutdown')">
-                        <span class="btn-icon">⏻</span>
-                        <span class="btn-text">Выключить</span>
-                    </button>
-                    <button class="btn btn-danger" onclick="confirmAction('restart')">
-                        <span class="btn-icon">↻</span>
-                        <span class="btn-text">Перезагрузка</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sound Page -->
-        <div class="page" id="page-sound">
-            <div class="card">
-                <div class="card-title">Громкость</div>
-                <div class="volume-container">
-                    <span class="volume-icon">🔈</span>
-                    <input type="range" class="volume-slider" id="vol2" min="0" max="100" value="50">
-                    <span class="volume-value" id="vol-val2">50%</span>
-                </div>
-                <div class="grid grid-4" style="margin-top: 12px;">
-                    <button class="btn" onclick="setVol(0)">0%</button>
-                    <button class="btn" onclick="setVol(25)">25%</button>
-                    <button class="btn" onclick="setVol(50)">50%</button>
-                    <button class="btn" onclick="setVol(100)">100%</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="grid">
-                    <button class="btn" onclick="send('/mute')">
-                        <span class="btn-icon">🔇</span>
-                        <span class="btn-text">Выкл. звук</span>
-                    </button>
-                    <button class="btn" onclick="send('/unmute')">
-                        <span class="btn-icon">🔊</span>
-                        <span class="btn-text">Вкл. звук</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Медиа</div>
-                <div class="media-controls">
-                    <button class="media-btn" onclick="send('/prev')">⏮</button>
-                    <button class="media-btn play" onclick="send('/play')">⏯</button>
-                    <button class="media-btn" onclick="send('/next')">⏭</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Input Page -->
-        <div class="page" id="page-input">
-            <div class="card">
-                <div class="card-title">Клавиши</div>
-                <div class="keys-grid">
-                    <button class="key" onclick="send('/key escape')">Esc</button>
-                    <button class="key" onclick="send('/key f1')">F1</button>
-                    <button class="key" onclick="send('/key f5')">F5</button>
-                    <button class="key" onclick="send('/key f11')">F11</button>
-                    <button class="key" onclick="send('/key tab')">Tab</button>
-                    <button class="key" onclick="send('/key space')">Space</button>
-                    <button class="key" onclick="send('/key enter')">Enter</button>
-                    <button class="key" onclick="send('/key backspace')">⌫</button>
-                    <button class="key" onclick="send('/key up')">↑</button>
-                    <button class="key" onclick="send('/key down')">↓</button>
-                    <button class="key" onclick="send('/key left')">←</button>
-                    <button class="key" onclick="send('/key right')">→</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Блокнот</div>
-                <div class="input-group">
-                    <input class="input" id="note-input" placeholder="Текст...">
-                    <button class="input-btn" onclick="sendNote()">→</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Открыть URL</div>
-                <div class="input-group">
-                    <input class="input" id="url-input" placeholder="https://...">
-                    <button class="input-btn" onclick="sendUrl()">→</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="grid">
-                    <button class="btn" onclick="send('/ss')">
-                        <span class="btn-icon">📸</span>
-                        <span class="btn-text">Скриншот</span>
-                    </button>
-                    <button class="btn" onclick="send('/cam')">
-                        <span class="btn-icon">📷</span>
-                        <span class="btn-text">Камера</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Terminal Page -->
-        <div class="page" id="page-terminal">
-            <div class="card">
-                <div class="card-title">CMD</div>
-                <div class="input-group">
-                    <input class="input" id="cmd-input" placeholder="Команда...">
-                    <button class="input-btn" onclick="runCmd()">▶</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">PowerShell</div>
-                <div class="input-group">
-                    <input class="input" id="ps-input" placeholder="Команда...">
-                    <button class="input-btn" onclick="runPs()">▶</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Процессы</div>
-                <div class="grid">
-                    <button class="btn" onclick="send('/proc')">
-                        <span class="btn-icon">📋</span>
-                        <span class="btn-text">Список</span>
-                    </button>
-                    <button class="btn btn-danger" onclick="killProc()">
-                        <span class="btn-icon">☠</span>
-                        <span class="btn-text">Завершить</span>
-                    </button>
-                </div>
-            </div>
+<div class="pg a" id="main">
+    <div class="c"><div class="t">Быстрые действия</div>
+        <div class="g">
+            <button class="b" onclick="X('/ss')"><span class="i">📸</span><span class="s">Скриншот</span></button>
+            <button class="b" onclick="X('/lock')"><span class="i">🔒</span><span class="s">Блокировка</span></button>
+            <button class="b" onclick="X('/sleep')"><span class="i">😴</span><span class="s">Сон</span></button>
+            <button class="b" onclick="X('/monoff')"><span class="i">🖥</span><span class="s">Монитор</span></button>
         </div>
     </div>
-
-    <div class="quick-bar">
-        <button class="quick-btn" onclick="send('/ss')">📸</button>
-        <button class="quick-btn" onclick="send('/lock')">🔒</button>
-        <button class="quick-btn" onclick="send('/play')">⏯</button>
-        <button class="quick-btn" onclick="send('/st')">📊</button>
-    </div>
-
-    <div class="toast" id="toast">✓ Отправлено</div>
-
-    <div class="overlay" id="overlay">
-        <div class="dialog">
-            <div class="dialog-title" id="dialog-title">Подтверждение</div>
-            <div class="dialog-text" id="dialog-text">Вы уверены?</div>
-            <div class="dialog-buttons">
-                <button class="dialog-btn cancel" onclick="hideDialog()">Отмена</button>
-                <button class="dialog-btn confirm" id="dialog-confirm">Да</button>
-            </div>
+    <div class="c"><div class="t">Медиа</div>
+        <div class="m">
+            <button class="mb" onclick="X('/prev')">⏮</button>
+            <button class="mb mp" onclick="X('/play')">⏯</button>
+            <button class="mb" onclick="X('/next')">⏭</button>
         </div>
     </div>
+    <div class="c"><div class="t">Громкость</div>
+        <div class="vc">
+            <span>🔈</span>
+            <input type="range" class="vs" id="v1" min="0" max="100" value="50">
+            <span class="vv" id="vv1">50%</span>
+        </div>
+    </div>
+</div>
 
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            // Темная тема
-            tg.setHeaderColor('#000000');
-            tg.setBackgroundColor('#000000');
-        }
+<div class="pg" id="pwr">
+    <div class="c"><div class="t">Управление</div>
+        <div class="g">
+            <button class="b" onclick="X('/lock')"><span class="i">🔒</span><span class="s">Блокировка</span></button>
+            <button class="b" onclick="X('/sleep')"><span class="i">😴</span><span class="s">Сон</span></button>
+            <button class="b" onclick="X('/monoff')"><span class="i">🖥</span><span class="s">Монитор OFF</span></button>
+            <button class="b bg" onclick="X('/cancel')"><span class="i">✓</span><span class="s">Отменить</span></button>
+        </div>
+    </div>
+    <div class="c"><div class="t">⚠️ Опасно</div>
+        <div class="g">
+            <button class="b br" onclick="C('shutdown')"><span class="i">⏻</span><span class="s">Выключить</span></button>
+            <button class="b br" onclick="C('restart')"><span class="i">↻</span><span class="s">Перезагрузка</span></button>
+        </div>
+    </div>
+</div>
 
-        let currentVol = 50;
+<div class="pg" id="snd">
+    <div class="c"><div class="t">Громкость</div>
+        <div class="vc">
+            <span>🔈</span>
+            <input type="range" class="vs" id="v2" min="0" max="100" value="50">
+            <span class="vv" id="vv2">50%</span>
+        </div>
+        <div class="g g4" style="margin-top:10px">
+            <button class="b" onclick="V(0)">0%</button>
+            <button class="b" onclick="V(25)">25%</button>
+            <button class="b" onclick="V(50)">50%</button>
+            <button class="b" onclick="V(100)">100%</button>
+        </div>
+    </div>
+    <div class="c">
+        <div class="g">
+            <button class="b" onclick="X('/mute')"><span class="i">🔇</span><span class="s">Mute</span></button>
+            <button class="b" onclick="X('/unmute')"><span class="i">🔊</span><span class="s">Unmute</span></button>
+        </div>
+    </div>
+    <div class="c"><div class="t">Медиа</div>
+        <div class="m">
+            <button class="mb" onclick="X('/prev')">⏮</button>
+            <button class="mb mp" onclick="X('/play')">⏯</button>
+            <button class="mb" onclick="X('/next')">⏭</button>
+        </div>
+    </div>
+</div>
 
-        // Tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById('page-' + tab.dataset.page).classList.add('active');
-            };
-        });
+<div class="pg" id="inp">
+    <div class="c"><div class="t">Клавиши</div>
+        <div class="kg">
+            <button class="k" onclick="X('/key escape')">Esc</button>
+            <button class="k" onclick="X('/key f1')">F1</button>
+            <button class="k" onclick="X('/key f5')">F5</button>
+            <button class="k" onclick="X('/key f11')">F11</button>
+            <button class="k" onclick="X('/key tab')">Tab</button>
+            <button class="k" onclick="X('/key space')">Space</button>
+            <button class="k" onclick="X('/key enter')">Enter</button>
+            <button class="k" onclick="X('/key backspace')">⌫</button>
+            <button class="k" onclick="X('/key up')">↑</button>
+            <button class="k" onclick="X('/key down')">↓</button>
+            <button class="k" onclick="X('/key left')">←</button>
+            <button class="k" onclick="X('/key right')">→</button>
+        </div>
+    </div>
+    <div class="c"><div class="t">Блокнот</div>
+        <div class="ig"><input class="ip" id="nt" placeholder="Текст..."><button class="ib" onclick="N()">→</button></div>
+    </div>
+    <div class="c"><div class="t">URL</div>
+        <div class="ig"><input class="ip" id="ur" placeholder="https://..."><button class="ib" onclick="U()">→</button></div>
+    </div>
+    <div class="c">
+        <div class="g">
+            <button class="b" onclick="X('/ss')"><span class="i">📸</span><span class="s">Скрин</span></button>
+            <button class="b" onclick="X('/cam')"><span class="i">📷</span><span class="s">Камера</span></button>
+        </div>
+    </div>
+</div>
 
-        // Send command
-        function send(cmd) {
-            console.log('Send:', cmd);
-            if (tg && tg.sendData) {
-                tg.sendData(cmd);
-            }
-            showToast('✓ ' + cmd);
-        }
+<div class="pg" id="cmd">
+    <div class="c"><div class="t">CMD</div>
+        <div class="ig"><input class="ip" id="cm" placeholder="Команда..."><button class="ib" onclick="CM()">▶</button></div>
+    </div>
+    <div class="c"><div class="t">PowerShell</div>
+        <div class="ig"><input class="ip" id="ps" placeholder="Команда..."><button class="ib" onclick="PS()">▶</button></div>
+    </div>
+    <div class="c"><div class="t">Процессы</div>
+        <div class="g">
+            <button class="b" onclick="X('/proc')"><span class="i">📋</span><span class="s">Список</span></button>
+            <button class="b br" onclick="K()"><span class="i">☠</span><span class="s">Kill</span></button>
+        </div>
+    </div>
+</div>
 
-        function showToast(text) {
-            const toast = document.getElementById('toast');
-            toast.textContent = text;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 1500);
-        }
+<div class="qb">
+    <button onclick="X('/ss')">📸</button>
+    <button onclick="X('/lock')">🔒</button>
+    <button onclick="X('/play')">⏯</button>
+    <button onclick="X('/st')">📊</button>
+</div>
 
-        // Volume
-        const vol1 = document.getElementById('vol');
-        const vol2 = document.getElementById('vol2');
-        const volVal1 = document.getElementById('vol-val');
-        const volVal2 = document.getElementById('vol-val2');
+<div class="to" id="to">✓</div>
 
-        function updateVol(v) {
-            currentVol = parseInt(v);
-            vol1.value = v;
-            vol2.value = v;
-            volVal1.textContent = v + '%';
-            volVal2.textContent = v + '%';
-        }
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();tg.setHeaderColor('#000');tg.setBackgroundColor('#000')}
+let vol=50;
 
-        vol1.oninput = () => updateVol(vol1.value);
-        vol2.oninput = () => updateVol(vol2.value);
-        vol1.onchange = () => send('/vol ' + vol1.value);
-        vol2.onchange = () => send('/vol ' + vol2.value);
+document.querySelectorAll('.ta').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.ta').forEach(x=>x.classList.remove('a'));
+    document.querySelectorAll('.pg').forEach(x=>x.classList.remove('a'));
+    t.classList.add('a');
+    document.getElementById(t.dataset.p).classList.add('a');
+});
 
-        function setVol(v) {
-            updateVol(v);
-            send('/vol ' + v);
-        }
+function X(c){
+    console.log('→',c);
+    if(tg&&tg.sendData)tg.sendData(c);
+    T('✓ '+c);
+}
 
-        // Inputs
-        function sendNote() {
-            const t = document.getElementById('note-input').value;
-            if (t) { send('/note ' + t); document.getElementById('note-input').value = ''; }
-        }
+function T(m){
+    const t=document.getElementById('to');
+    t.textContent=m;t.classList.add('sh');
+    setTimeout(()=>t.classList.remove('sh'),1500);
+}
 
-        function sendUrl() {
-            const t = document.getElementById('url-input').value;
-            if (t) { send('/url ' + t); document.getElementById('url-input').value = ''; }
-        }
+const v1=document.getElementById('v1'),v2=document.getElementById('v2');
+const vv1=document.getElementById('vv1'),vv2=document.getElementById('vv2');
 
-        function runCmd() {
-            const t = document.getElementById('cmd-input').value;
-            if (t) { send('/cmd ' + t); document.getElementById('cmd-input').value = ''; }
-        }
+function Vup(v){vol=+v;v1.value=v;v2.value=v;vv1.textContent=v+'%';vv2.textContent=v+'%'}
+v1.oninput=()=>Vup(v1.value);
+v2.oninput=()=>Vup(v2.value);
+v1.onchange=()=>X('/vol '+v1.value);
+v2.onchange=()=>X('/vol '+v2.value);
+function V(v){Vup(v);X('/vol '+v)}
 
-        function runPs() {
-            const t = document.getElementById('ps-input').value;
-            if (t) { send('/ps ' + t); document.getElementById('ps-input').value = ''; }
-        }
+function N(){const t=document.getElementById('nt').value;if(t){X('/note '+t);document.getElementById('nt').value=''}}
+function U(){const t=document.getElementById('ur').value;if(t){X('/url '+t);document.getElementById('ur').value=''}}
+function CM(){const t=document.getElementById('cm').value;if(t){X('/cmd '+t);document.getElementById('cm').value=''}}
+function PS(){const t=document.getElementById('ps').value;if(t){X('/ps '+t);document.getElementById('ps').value=''}}
+function K(){const t=prompt('PID или имя:');if(t)X('/kill '+t)}
+function C(a){if(confirm('Подтвердите '+a))X('/'+a)}
 
-        function killProc() {
-            const t = prompt('PID или имя процесса:');
-            if (t) send('/kill ' + t);
-        }
-
-        // Dialog
-        let pendingAction = '';
-
-        function confirmAction(action) {
-            pendingAction = action;
-            const titles = { shutdown: '⏻ Выключить ПК?', restart: '↻ Перезагрузить?' };
-            document.getElementById('dialog-title').textContent = titles[action] || 'Подтверждение';
-            document.getElementById('dialog-text').textContent = 'Это действие будет выполнено через 5 секунд.';
-            document.getElementById('overlay').classList.add('show');
-        }
-
-        function hideDialog() {
-            document.getElementById('overlay').classList.remove('show');
-        }
-
-        document.getElementById('dialog-confirm').onclick = () => {
-            hideDialog();
-            send('/' + pendingAction);
-        };
-
-        // Enter key
-        document.querySelectorAll('.input').forEach(input => {
-            input.onkeypress = e => { if (e.key === 'Enter') input.nextElementSibling.click(); };
-        });
-    </script>
+document.querySelectorAll('.ip').forEach(i=>i.onkeypress=e=>{if(e.key==='Enter')i.nextElementSibling.click()});
+</script>
 </body>
 </html>
