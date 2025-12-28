@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PC Remote Control</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --bg2: #16213e;
+            --card: #1f2940;
+            --accent: #00d4ff;
+            --accent2: #7b2cbf;
+            --text: #fff;
+            --text2: #a0a0a0;
+            --success: #00c853;
+            --warning: #ffc107;
+            --danger: #ff5252;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            background: var(--bg2);
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            flex-shrink: 0;
+            padding: 10px 16px;
+            background: var(--card);
+            border: none;
+            border-radius: 20px;
+            color: var(--text2);
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .content {
+            padding: 15px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .btn {
+            padding: 15px 10px;
+            background: var(--bg2);
+            border: none;
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 0.9em;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-icon {
+            font-size: 1.4em;
+        }
+
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-success { background: var(--success); }
+        .btn-accent { background: var(--accent); color: #000; }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: var(--bg2);
+            border-radius: 4px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .slider-value {
+            min-width: 45px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .media-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px 0;
+        }
+
+        .media-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg2);
+            color: var(--text);
+            font-size: 1.3em;
+            cursor: pointer;
+        }
+
+        .media-btn.play {
+            width: 70px;
+            height: 70px;
+            background: var(--accent);
+            color: var(--bg);
+            font-size: 1.5em;
+        }
+
+        .media-btn:active {
+            transform: scale(0.9);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .input {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg2);
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1em;
+        }
+
+        .input-btn {
+            padding: 12px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .keyboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .key {
+            padding: 12px;
+            background: var(--bg2);
+            border: none;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85em;
+            cursor: pointer;
+        }
+
+        .key:active {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card);
+            padding: 12px 24px;
+            border-radius: 25px;
+            z-index: 1000;
+            transition: transform 0.3s;
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .quick-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg2);
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #333;
+        }
+
+        .quick-btn {
+            padding: 10px 18px;
+            background: var(--card);
+            border: none;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        .quick-btn:active {
+            background: var(--accent);
+        }
+
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirm-overlay.show {
+            display: flex;
+        }
+
+        .confirm-box {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .confirm-title {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .confirm-no {
+            background: var(--bg2);
+            color: var(--text);
+        }
+
+        .confirm-yes {
+            background: var(--danger);
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="dot"></span> PC Remote Control</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-page="home">🏠 Главная</button>
+        <button class="tab" data-page="power">⚡ Питание</button>
+        <button class="tab" data-page="volume">🔊 Звук</button>
+        <button class="tab" data-page="screen">📸 Экран</button>
+        <button class="tab" data-page="input">⌨️ Ввод</button>
+        <button class="tab" data-page="terminal">💻 Терминал</button>
+    </div>
+
+    <div class="content">
+        <!-- HOME -->
+        <div class="page active" id="page-home">
+            <div class="card">
+                <div class="card-title">⚡ Быстрые действия</div>
+                <div class="grid">
+                    <button class="btn" onclick="sendCmd('/ss')">
+                        <span class="btn-icon">📸</span>
+                        <span>Скриншот</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/lock')">
+                        <span class="btn-icon">🔒</span>
+                        <span>Блокировка</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/sleep')">
+                        <span class="btn-icon">😴</span>
+                        <span>Сон</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/monoff')">
+                        <span class="btn-icon">🖥️</span>
+                        <span>Выкл. монитор</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎵 Медиа</div>
+                <div class="media-controls">
+                    <button class="media-btn" onclick="sendCmd('/prev')">⏮️</button>
+                    <button class="media-btn play" onclick="sendCmd('/play')">⏯️</button>
+                    <button class="media-btn" onclick="sendCmd('/next')">⏭️</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔊 Громкость</div>
+                <div class="slider-container">
+                    <span>🔈</span>
+                    <input type="range" class="slider" id="vol-slider" min="0" max="100" value="50">
+                    <span class="slider-value" id="vol-value">50%</span>
+                </div>
+                <div class="grid grid-4">
+                    <button class="btn" onclick="setVol(0)">0%</button>
+                    <button class="btn" onclick="setVol(25)">25%</button>
+                    <button class="btn" onclick="setVol(50)">50%</button>
+                    <button class="btn" onclick="setVol(100)">100%</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">ℹ️ Информация</div>
+                <button class="btn btn-accent" onclick="sendCmd('/st')" style="width: 100%;">
+                    📊 Показать статус ПК
+                </button>
+            </div>
+        </div>
+
+        <!-- POWER -->
+        <div class="page" id="page-power">
+            <div class="card">
+                <div class="card-title">⚡ Управление питанием</div>
+                <div class="grid">
+                    <button class="btn btn-danger" onclick="confirmAction('shutdown', '⏻ Выключить ПК?')">
+                        <span class="btn-icon">⏻</span>
+                        <span>Выключить</span>
+                    </button>
+                    <button class="btn btn-warning" onclick="confirmAction('restart', '🔄 Перезагрузить?')">
+                        <span class="btn-icon">🔄</span>
+                        <span>Перезагрузка</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/sleep')">
+                        <span class="btn-icon">😴</span>
+                        <span>Сон</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/lock')">
+                        <span class="btn-icon">🔒</span>
+                        <span>Блокировка</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/monoff')">
+                        <span class="btn-icon">🖥️</span>
+                        <span>Выкл. монитор</span>
+                    </button>
+                    <button class="btn btn-success" onclick="sendCmd('/cancel')">
+                        <span class="btn-icon">❌</span>
+                        <span>Отмена</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VOLUME -->
+        <div class="page" id="page-volume">
+            <div class="card">
+                <div class="card-title">🔊 Громкость</div>
+                <div class="slider-container">
+                    <span>🔈</span>
+                    <input type="range" class="slider" id="vol-slider2" min="0" max="100" value="50">
+                    <span class="slider-value" id="vol-value2">50%</span>
+                </div>
+                <div class="grid grid-3">
+                    <button class="btn" onclick="volChange(-10)">-10</button>
+                    <button class="btn" onclick="volChange(-5)">-5</button>
+                    <button class="btn" onclick="volChange(+5)">+5</button>
+                    <button class="btn" onclick="volChange(+10)">+10</button>
+                    <button class="btn btn-danger" onclick="sendCmd('/mute')">🔇 Mute</button>
+                    <button class="btn btn-success" onclick="sendCmd('/unmute')">🔊 Unmute</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎵 Медиа</div>
+                <div class="media-controls">
+                    <button class="media-btn" onclick="sendCmd('/prev')">⏮️</button>
+                    <button class="media-btn play" onclick="sendCmd('/play')">⏯️</button>
+                    <button class="media-btn" onclick="sendCmd('/next')">⏭️</button>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button class="btn" onclick="sendCmd('/stop')" style="display: inline-flex;">
+                        <span class="btn-icon">⏹️</span>
+                        <span>Стоп</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN -->
+        <div class="page" id="page-screen">
+            <div class="card">
+                <div class="card-title">📸 Снимки экрана</div>
+                <div class="grid">
+                    <button class="btn btn-accent" onclick="sendCmd('/ss')">
+                        <span class="btn-icon">📸</span>
+                        <span>Скриншот</span>
+                    </button>
+                    <button class="btn" onclick="sendCmd('/cam')">
+                        <span class="btn-icon">📷</span>
+                        <span>Веб-камера</span>
+                    </button>
+                </div>
+                <p style="color: var(--text2); margin-top: 15px; font-size: 0.9em;">
+                    💡 Снимки будут отправлены в чат
+                </p>
+            </div>
+        </div>
+
+        <!-- INPUT -->
+        <div class="page" id="page-input">
+            <div class="card">
+                <div class="card-title">⌨️ Клавиши</div>
+                <div class="keyboard-grid">
+                    <button class="key" onclick="sendCmd('/key escape')">Esc</button>
+                    <button class="key" onclick="sendCmd('/key f1')">F1</button>
+                    <button class="key" onclick="sendCmd('/key f2')">F2</button>
+                    <button class="key" onclick="sendCmd('/key f5')">F5</button>
+                    <button class="key" onclick="sendCmd('/key tab')">Tab</button>
+                    <button class="key" onclick="sendCmd('/key space')">Space</button>
+                    <button class="key" onclick="sendCmd('/key enter')">Enter</button>
+                    <button class="key" onclick="sendCmd('/key backspace')">⌫</button>
+                    <button class="key" onclick="sendCmd('/key up')">↑</button>
+                    <button class="key" onclick="sendCmd('/key down')">↓</button>
+                    <button class="key" onclick="sendCmd('/key left')">←</button>
+                    <button class="key" onclick="sendCmd('/key right')">→</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📝 Блокнот</div>
+                <div class="input-group">
+                    <input type="text" class="input" id="notepad-text" placeholder="Текст...">
+                    <button class="input-btn" onclick="sendNote()">📝</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💬 Сообщение на ПК</div>
+                <div class="input-group">
+                    <input type="text" class="input" id="msg-text" placeholder="Сообщение...">
+                    <button class="input-btn" onclick="sendMsg()">💬</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🌐 Открыть URL</div>
+                <div class="input-group">
+                    <input type="text" class="input" id="url-text" placeholder="https://...">
+                    <button class="input-btn" onclick="sendUrl()">🌐</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TERMINAL -->
+        <div class="page" id="page-terminal">
+            <div class="card">
+                <div class="card-title">💻 CMD</div>
+                <div class="input-group">
+                    <input type="text" class="input" id="cmd-input" placeholder="Команда...">
+                    <button class="input-btn" onclick="runCmd()">▶</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔷 PowerShell</div>
+                <div class="input-group">
+                    <input type="text" class="input" id="ps-input" placeholder="Команда...">
+                    <button class="input-btn" onclick="runPs()">▶</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Процессы</div>
+                <div class="grid">
+                    <button class="btn" onclick="sendCmd('/proc')">
+                        <span class="btn-icon">📊</span>
+                        <span>Список</span>
+                    </button>
+                    <button class="btn btn-danger" onclick="killPrompt()">
+                        <span class="btn-icon">☠️</span>
+                        <span>Завершить</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📁 Файлы</div>
+                <div class="grid">
+                    <button class="btn" onclick="sendCmd('/files')">📁 Файлы</button>
+                    <button class="btn" onclick="sendCmd('/drives')">💿 Диски</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Bar -->
+    <div class="quick-bar">
+        <button class="quick-btn" onclick="sendCmd('/ss')">📸</button>
+        <button class="quick-btn" onclick="sendCmd('/lock')">🔒</button>
+        <button class="quick-btn" onclick="sendCmd('/st')">📊</button>
+        <button class="quick-btn" onclick="sendCmd('/play')">⏯️</button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✅ Отправлено</div>
+
+    <!-- Confirm Dialog -->
+    <div class="confirm-overlay" id="confirm">
+        <div class="confirm-box">
+            <div class="confirm-title" id="confirm-title">Вы уверены?</div>
+            <div class="confirm-buttons">
+                <button class="confirm-no" onclick="hideConfirm()">Отмена</button>
+                <button class="confirm-yes" id="confirm-yes">Да</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.enableClosingConfirmation();
+        }
+
+        let currentVol = 50;
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('page-' + tab.dataset.page).classList.add('active');
+            };
+        });
+
+        // Send command via Telegram
+        function sendCmd(cmd) {
+            if (tg) {
+                tg.sendData(cmd);
+                showToast('✅ ' + cmd);
+                // Закрываем через небольшую задержку
+                setTimeout(() => {
+                    // tg.close(); // Раскомментируйте если хотите закрывать после команды
+                }, 500);
+            } else {
+                // Fallback - открыть бота с командой
+                window.open('https://t.me/YOUR_BOT_USERNAME?start=' + encodeURIComponent(cmd), '_blank');
+            }
+        }
+
+        function showToast(text, error = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = text;
+            toast.className = 'toast show' + (error ? ' error' : '');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Volume
+        const slider1 = document.getElementById('vol-slider');
+        const slider2 = document.getElementById('vol-slider2');
+        const val1 = document.getElementById('vol-value');
+        const val2 = document.getElementById('vol-value2');
+
+        function updateVolUI(v) {
+            currentVol = v;
+            slider1.value = v;
+            slider2.value = v;
+            val1.textContent = v + '%';
+            val2.textContent = v + '%';
+        }
+
+        slider1.oninput = () => updateVolUI(slider1.value);
+        slider2.oninput = () => updateVolUI(slider2.value);
+
+        slider1.onchange = () => sendCmd('/vol ' + slider1.value);
+        slider2.onchange = () => sendCmd('/vol ' + slider2.value);
+
+        function setVol(v) {
+            updateVolUI(v);
+            sendCmd('/vol ' + v);
+        }
+
+        function volChange(delta) {
+            const newVol = Math.max(0, Math.min(100, currentVol + delta));
+            updateVolUI(newVol);
+            sendCmd('/vol ' + newVol);
+        }
+
+        // Inputs
+        function sendNote() {
+            const text = document.getElementById('notepad-text').value;
+            if (text) {
+                sendCmd('/note ' + text);
+                document.getElementById('notepad-text').value = '';
+            }
+        }
+
+        function sendMsg() {
+            const text = document.getElementById('msg-text').value;
+            if (text) {
+                sendCmd('/msg ' + text);
+                document.getElementById('msg-text').value = '';
+            }
+        }
+
+        function sendUrl() {
+            const url = document.getElementById('url-text').value;
+            if (url) {
+                sendCmd('/url ' + url);
+                document.getElementById('url-text').value = '';
+            }
+        }
+
+        function runCmd() {
+            const cmd = document.getElementById('cmd-input').value;
+            if (cmd) {
+                sendCmd('/cmd ' + cmd);
+                document.getElementById('cmd-input').value = '';
+            }
+        }
+
+        function runPs() {
+            const cmd = document.getElementById('ps-input').value;
+            if (cmd) {
+                sendCmd('/ps ' + cmd);
+                document.getElementById('ps-input').value = '';
+            }
+        }
+
+        function killPrompt() {
+            const target = prompt('Введите PID или имя процесса:');
+            if (target) {
+                sendCmd('/kill ' + target);
+            }
+        }
+
+        // Confirm dialog
+        let confirmCmd = '';
+
+        function confirmAction(cmd, title) {
+            confirmCmd = cmd;
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm').classList.add('show');
+        }
+
+        function hideConfirm() {
+            document.getElementById('confirm').classList.remove('show');
+        }
+
+        document.getElementById('confirm-yes').onclick = () => {
+            hideConfirm();
+            sendCmd('/' + confirmCmd);
+        };
+
+        // Enter key for inputs
+        document.querySelectorAll('.input').forEach(input => {
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    input.nextElementSibling.click();
+                }
+            };
+        });
+    </script>
+</body>
+</html>
